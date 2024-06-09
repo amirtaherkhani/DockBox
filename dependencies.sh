@@ -1,0 +1,2 @@
+sudo apt-get -y update && sudo apt-get -y  upgrade
+sudo apt-get -y install  wget curl git unzip libssl-dev net-tools resolvconf python3-pip python3-dev openssl openssh-client openssh-server  build-essential ca-certificates curl 
