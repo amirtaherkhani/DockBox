@@ -1,0 +1,4 @@
+
+traefik/logs/access.log
+traefik/.env
+traefik/certs/acme.json
