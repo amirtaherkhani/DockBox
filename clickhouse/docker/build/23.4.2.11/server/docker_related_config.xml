@@ -1,0 +1,13 @@
+<clickhouse>
+     <!-- Listen wildcard address to allow accepting connections from other containers and host network. -->
+    <!-- <listen_host>::</listen_host> -->
+    <listen_host>0.0.0.0</listen_host>
+    <listen_try>1</listen_try>
+    <logger>
+      <level>notice</level>
+      <size>1000M</size>
+      <count>10</count>
+      <console>1</console>
+      <stream_compress>false</stream_compress>
+    </logger>
+</clickhouse>

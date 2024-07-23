@@ -1,0 +1,98 @@
+version: '3.8'
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    hostname: mssql
+    container_name: mssql
+    stdin_open: true # docker run -i
+    tty: true # docker run -t
+    networks:
+      - default
+      - external-network
+    ports:
+      - 1433:1433
+    env_file:
+      - .env
+    user: root
+    restart: no
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/mssql-tools/bin/sqlcmd -S mssql -U sa -P ${MSSQL_SA_PASSWORD} -Q 'SELECT 1' || exit 1"
+        ]
+      interval: 10s
+      retries: 10
+      start_period: 10s
+      timeout: 3s
+
+    volumes:
+      - mssql-system:/var/opt/mssql/ # or /var/opt/sqlserver
+      - mssql-data:/var/opt/sqlserver/data
+      - mssql-log:/var/opt/sqlserver/log
+      - mssql-backup:/var/opt/sqlserver/backup
+
+  sqlpad:
+    image: sqlpad/sqlpad:latest
+    hostname: sqlpad
+    container_name: sqlpad
+    ports:
+      - 80:80
+    env_file:
+      - .env
+    networks:
+      - default
+      - external-network
+    healthcheck:
+      test: curl --fail http://sqlpad:3000 || exit 1 // TODO not working 
+      interval: 60s
+      retries: 5
+      start_period: 10s
+      timeout: 10s
+    depends_on:
+      mssql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SQLPAD_CONNECTIONS__sqlserverdemo__name: SQL Server Demo
+      SQLPAD_CONNECTIONS__sqlserverdemo__driver: sqlserver
+      SQLPAD_CONNECTIONS__sqlserverdemo__host: mssql
+      SQLPAD_CONNECTIONS__sqlserverdemo__database: master
+      SQLPAD_CONNECTIONS__sqlserverdemo__username: sa
+      SQLPAD_CONNECTIONS__sqlserverdemo__password: ${MSSQL_SA_PASSWORD:-}
+    volumes:
+      - mssql-pad-volume:/var/lib/sqlpad
+
+
+  redis:
+    image: redis:latest
+    container_name: "mssql-redis"
+    expose:
+      - 6379
+    stdin_open: true # docker run -i
+    tty: true # docker run -t
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 30s
+      retries: 50
+    restart: always
+    networks:
+      - default
+    command: ["redis-server", "--maxclients 100" , "--databases 3","--maxmemory 256mb", "--maxmemory-policy volatile-ttl"]
+
+networks:
+  default:
+    name :  mssql-bridge
+  external-network:
+     name: kara-network
+
+volumes:
+  mssql-system:
+  mssql-data:
+  mssql-log:
+  mssql-backup:
+  mssql-config:
+  mssql-pad-volume:
+  

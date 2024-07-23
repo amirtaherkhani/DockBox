@@ -1,0 +1,99 @@
+---
+#https://docs.docker.com/compose/compose-file/07-volumes/
+
+version: '3.8'
+
+services:
+    clickhouse-server:
+        image: clickhouse-server:${CLICKHOUSE_VERSION}
+        container_name: clickhouse-server
+        hostname: clickhouse-server
+
+        #Port 8123 is the default HTTP interface endpoint. You will use this port if you use curl commands to issue queries to the server. Also, a number of libraries like the Yandex ClickHouse JDBC driver use HTTP requests under the covers, so you may be using this without knowing it.
+        # Port 9000 is the default native TCP/IP protocol endpoint. This is widely used by clients, as shown by the following examples.
+        # Clickhouse-client, the standard command line client for ClickHouse, uses native TCP/IP protocol.
+        # Similarly the ClickHouse Distributed engine uses native TCP/IP protocol to send subqueries to underlying tables. It is also used in rare cases by replicated tables when sending requests to a leader replica.
+        # Finally drivers like the Python clickhouse-driver or Golang driver talk to ClickHouse using native TCP/IP protocol.
+        # Port 9009 is used for replication. Replicas access that port to transfer new parts between tables.
+
+        ports:
+            - 9000:9000 #FOR TCP/IP DEMON // CONFIG FILES /etc/clickhouse-server ---> [1] config.xml , [2] users.xml
+            - 8123:8123 #FOR HTTP/S PROTOCOL
+            - 9009:9009 #FOR ISR CONNECTION
+
+        #/var/lib/clickhouse/ - main folder where ClickHouse stores the data
+        #/var/log/clickhouse-server/ - logs
+        #/etc/clickhouse-server/config.d/*.xml - files with server configuration adjustmenets
+        #/etc/clickhouse-server/users.d/*.xml - files with user settings adjustmenets
+        #/docker-entrypoint-initdb.d/ - folder with database initialization scripts (see below).
+        # Configuration Files
+        # ClickHouse supports multi-file configuration management. 
+        # The main server configuration file is /etc/clickhouse-server/config.xml or /etc/clickhouse-server/config.yaml. 
+        # Other files must be in the /etc/clickhouse-server/config.d directory.
+        # Note, that any configuration file can be written either in XML or YAML, but mixing formats in one file is not supported.
+        # For example, you can have main configs as config.xml and users.xml and write additional files in config.d and users.d directories in .yaml.
+
+# All XML files should have the same root element, usually <clickhouse>. As for YAML, clickhouse: should not be present, the parser will insert it automatically.
+        volumes:
+            - airflow-clickhouse:/var/lib/clickhouse/
+            - ${CLICKHOUSE_VOLUME:-.}/log/:/var/log/clickhouse-server/
+            # - ${CLICKHOUSE_VOLUME:-.}/config/server:/etc/clickhouse-server/config.d
+            - ${CLICKHOUSE_VOLUME:-.}/config/user:/etc/clickhouse-server/users.d
+            - ${CLICKHOUSE_VOLUME:-.}/config/init:/docker-entrypoint-initdb.d
+
+        healthcheck:
+            test: "wget --no-verbose --tries=1 --spider http://localhost:8123/ || exit 1 "
+            interval: 5s
+            retries: 5
+            timeout: 2s
+        tty: true
+        restart: "no"
+        deploy:
+            restart_policy:
+                condition: on-failure
+                delay: 5s
+                max_attempts: 3
+                window: 120s
+        ulimits:
+            nofile:
+                soft: 262144
+                hard: 262144
+        networks:
+            - default
+            - extra-network
+
+
+    clickhouse-cli:
+        # run this server for run  docker compose run --rm 
+        profiles:
+            - client
+        image: clickhouse-server:${CLICKHOUSE_VERSION}
+        container_name: clickhouse-cli
+        env_file:
+            - .env
+        stdin_open: true # docker run -i
+        tty: true # docker run -t
+        environment:
+            - TERM=xterm-256color
+        networks:
+            - default
+            - extra-network
+        command:
+            - bash
+
+        links:
+            - "clickhouse-server:clickhouse-server"
+        depends_on:
+            clickhouse-server:
+                condition: service_healthy
+
+networks:
+    default:
+        name: "clickhouse-bridge"
+    extra-network:
+        external: true
+        name: kara-network
+
+volumes:
+  airflow-clickhouse:
+    name: "airflow-clickhouse"

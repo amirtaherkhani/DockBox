@@ -1,0 +1,12 @@
+<clickhouse>
+    <users>
+        <default>
+            <!-- access management -->
+            <access_management>1</access_management>
+        </default>
+        <test>
+            <!-- access management -->
+            <access_management>1</access_management>
+        </test>
+    </users>
+</clickhouse>

@@ -1,0 +1,33 @@
+services:
+  mailserver:
+    image: docker.io/mailserver/docker-mailserver:13.3
+    container_name: mailserver
+    hostname: mail
+    domainname: next-etl.com
+    #user: ${UID}:${GID}
+    ports:
+      - 25:25 # SMTP  (explicit TLS => STARTTLS)
+      - 143:143 # IMAP4 (explicit TLS => STARTTLS)
+      - 465:465 # ESMTP (implicit TLS)
+      - 587:587 # ESMTP (explicit TLS => STARTTLS)
+      - 993:993 # IMAP4 (implicit TLS)
+    volumes:
+      - ${HOME}/.docker/mailserver/data/dms/mail-data/:/var/mail/
+      - ${HOME}/.docker/mailserver/data/dms/mail-state/:/var/mail-state/
+      - ${HOME}/.docker/mailserver/data/dms/mail-logs/:/var/log/mail/
+      - ${HOME}/.docker/mailserver/data/dms/config/:/tmp/docker-mailserver/
+      - ${HOME}/.docker/mailserver/data/letsencrypt:/etc/letsencrypt
+      - /etc/localtime:/etc/localtime:ro
+    restart: always
+    stop_grace_period: 1m
+    cap_add:
+      - NET_ADMIN
+    healthcheck:
+      test: ss --listening --tcp | grep -P 'LISTEN.+:smtp' || exit 1
+      timeout: 3s
+      retries: 0
+    networks:
+      - traefik-network
+networks:
+  traefik-network:
+    external: true

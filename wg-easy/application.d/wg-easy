@@ -1,0 +1,4 @@
+[WireGuard]
+title=WireGuard(Private Network Service)
+description=fast, modern, secure VPN tunnel. WireGuard® is an extremely simple yet fast and modern VPN that utilizes state-of-the-art cryptography.
+ports=51820/udp

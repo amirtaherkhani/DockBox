@@ -1,0 +1,8 @@
+# network interfaces
+net:
+  port: 27017
+  bindIp: 0.0.0.0
+
+# security settings
+security:
+  authorization: enabled

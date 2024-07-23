@@ -1,0 +1,4 @@
+pymssql
+pandas
+names
+python-dotenv

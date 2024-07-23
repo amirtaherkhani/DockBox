@@ -1,0 +1,31 @@
+<!-- https://clickhouse.com/docs/en/operations/configuration-files -->
+<!-- https://clickhouse.com/docs/en/operations/settings/settings-users -->
+<clickhouse>
+    <users>
+        <test>
+            <password>ajshdjkhasd</password>
+            <!-- <access_management>0</access_management> -->
+            <networks>
+                <ip>::/0</ip>
+                <!-- <ip>::1</ip>
+                <ip>127.0.0.1</ip> -->
+            </networks>
+            <profile>default</profile>
+            <quota>default</quota>
+            <default_database>default</default_database>
+            <!-- <databases>
+            <database_name>
+                <table_name>
+                    <filter>expression</filter>
+                </table_name>
+            </database_name>
+        </databases> -->
+            <!-- <grants>
+                <query>
+                </query>
+            </grants> -->
+        </test>
+        <!-- Other users settings -->
+    </users>
+</clickhouse>
+

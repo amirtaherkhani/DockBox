@@ -1,0 +1,21 @@
+services:
+  uptime:
+    image: louislam/uptime-kuma:latest
+    restart: always 
+    #ports:
+    #  - 3001:3001
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.uptime.rule=Host(`uptime.next-etl.com`)
+      - traefik.http.routers.uptime.entrypoints=web, websecure
+      - traefik.http.routers.uptime.tls=true
+      - traefik.http.routers.uptime.tls.certresolver=letsencrypt
+      - traefik.http.services.uptime.loadBalancer.server.port=3001
+    networks:
+      - traefik-network
+    volumes:
+      - ${HOME}/.docker/uptime-kuma/data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+networks:
+  traefik-network:
+    external: true

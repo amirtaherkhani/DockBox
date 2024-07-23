@@ -1,0 +1,15 @@
+services:
+  certbot:
+    image: certbot/certbot:latest
+    container_name: certbot
+    hostname: certbot-server
+    ports:
+      - 80:80
+    volumes:
+      - ${HOME}/.docker/mailserver/data/letsencrypt:/etc/letsencrypt
+      - ${HOME}/.docker/mailserver/data/certbot/logs:/var/log/letsencrypt/
+    command: certonly --standalone --force-renewal --email ${MAILE} -d ${DOMAIN}
+      --agree-tos
+networks:
+  traefik-network:
+    external: true

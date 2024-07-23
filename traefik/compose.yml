@@ -8,12 +8,12 @@ services:
       - no-new-privileges:true
     environment:
       - TZ=${TZ}
-#      - UID=1000  #${id -u}
-#      - GID=1000  #${id -g}
+    #      - UID=1000  #${id -u}
+    #      - GID=1000  #${id -g}
     ports:
       - 80:80
       - 443:443
-      - 8080:8080
+     # - 8080:8080
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /etc/localtime:/etc/localtime:ro
@@ -22,19 +22,15 @@ services:
       - ${HOME}/.docker/traefik/certs/acme.json:/etc/traefik/certs/acme.json
     labels:
       - traefik.enable=true
-      #- traefik.http.routers.traefik.middlewares=admin-auth
       - traefik.http.routers.traefik.entrypoints=web
       - traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN_NAME}`)
-      #- traefik.http.middlewares.traefik-https-redirect.redirectscheme.scheme=https
-      #- traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto=https
-      #- traefik.http.routers.traefik.middle  wares=traefik-https-redirect
       - traefik.http.routers.traefik-secure.entrypoints=websecure
       - traefik.http.routers.traefik-secure.rule=Host(`traefik.${DOMAIN_NAME}`)
       - traefik.http.routers.traefik-secure.tls=true
       - traefik.http.routers.traefik-secure.tls.certresolver=letsencrypt
       - traefik.http.routers.traefik-secure.service=api@internal
-      #- traefik.http.routers.traefik-secure.tls.domains[0].main=${DOMAIN_NAME}
-      #- traefik.http.routers.traefik-secure.tls.domains[0].sans=*.${DOMAIN_NAME}
+    #      - traefik.http.routers.traefik-secure.tls.domains[0].main=${DOMAIN_NAME}
+    #      - traefik.http.routers.traefik-secure.tls.domains[0].sans=dockge.${DOMAIN_NAME}
     networks:
       - traefik-network
 networks:
